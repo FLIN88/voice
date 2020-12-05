@@ -77,7 +77,7 @@ def deal(inpath, outpath, lab):
     path, name = os.path.split(outpath)
     prefix, sufix = name.split('.')
     
-    '''
+    
     # 语谱图
     spectrum, freqs, ts, fig = plt.specgram(waveData, NFFT = frame_length, pad_to = N, \
         Fs = framerate,cmap = 'jet', noverlap = frame_length - frame_shift,window=np.hamming(M = frame_length))
@@ -88,7 +88,7 @@ def deal(inpath, outpath, lab):
     #print('spectrum.shape',spectrum.shape)
     #spectrum = np.log10(spectrum) * 10
     #spectrum = spectrum.reshape(1,-1)[0]
-    '''
+    
     # MFCC
     
     frames = enframe(waveData, frame_length, frame_shift, np.hamming(frame_length))
