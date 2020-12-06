@@ -82,7 +82,7 @@ def deal(inpath, outpath, lab):
     spectrum, freqs, ts, fig = plt.specgram(waveData, NFFT = frame_length, pad_to = N, \
         Fs = framerate,cmap = 'jet', noverlap = frame_length - frame_shift,window=np.hamming(M = frame_length))
     plt.axis('off')
-    plt.savefig(path + '/spec_' + prefix + '.png', bbox_inches = 'tight', pad_inches = 0)
+    plt.savefig(path + '/' + str(lab) + '_spec_' + prefix + '.png', bbox_inches = 'tight', pad_inches = 0, dpi = 20)
     plt.clf()
     
     #print('spectrum.shape',spectrum.shape)
@@ -90,7 +90,7 @@ def deal(inpath, outpath, lab):
     #spectrum = spectrum.reshape(1,-1)[0]
     
     # MFCC
-    
+    '''
     frames = enframe(waveData, frame_length, frame_shift, np.hamming(frame_length))
     nf = frames.shape[0] - 1
     #MFCC = np.zeros((L, nf))
@@ -105,13 +105,13 @@ def deal(inpath, outpath, lab):
         filter_banks = np.where(filter_banks == 0, np.finfo(float).eps, filter_banks) # 数值稳定性
         filter_banks = 10 * np.log10(filter_banks) # dB
         logMel[:, i] = filter_banks
-        '''
+
         filter_banks -= (np.mean(filter_banks, axis=0) + 1e-8) # 把权值下移平均值
         
         c2 = dct(filter_banks, type=2, axis=-1, norm='ortho')[ 1 : (L + 1)] # Keep 2-13
         c2 *= lifts
         MFCC[:, i] = c2
-        '''
+
     
     # 画logMel
     
@@ -119,7 +119,7 @@ def deal(inpath, outpath, lab):
     plt.axis('off')
     plt.savefig(path + '/' + str(lab) + '_logMel_' + prefix + '.png', bbox_inches = 'tight',pad_inches = 0, dpi =20)
     plt.clf()
-    '''
+    
     #画MFCC
     plt.pcolor(MFCC,cmap = 'jet')
     plt.axis('off')
@@ -152,6 +152,7 @@ def findwav(inpath, outpath, lab):
 
 
 if __name__ == "__main__":
+
     rootpath = './signal'
     newfolder = './images'
 
@@ -162,4 +163,4 @@ if __name__ == "__main__":
 
     print("Total",tot_wavefile_cnt,"wavefiles dealt!")
 
-    #deal(r'./test.wav','./test.wav', 0, fvec, flab)
+    #deal('./test.wav','./test.wav', 0)
