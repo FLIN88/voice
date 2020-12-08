@@ -12,6 +12,8 @@ def drawroc(y_test, P_test):
     # ROC Curve
     fpr, tpr, threshold = roc_curve(y_test, P_test)
     roc_auc = auc(fpr,tpr)
+    print("auc:", roc_auc)
+    return 
     lw = 1
     plt.figure()
     #ax = plt.gca()
@@ -44,28 +46,27 @@ def RandomForest(n_tree, X_train, y_train, X_test, y_test):
 
 def rbfsvm(X_train, y_train, X_test, y_test):
     from sklearn.svm import SVC
-    
     train_set = []
     test_set = []
     index = []
-    for Cval in range(2,3):
+    for Cval in range(1,2):
+        Cval = 1
         index.append(Cval)
         trainx = X_train.copy()
         trainy = y_train.copy()
-        clf = SVC(C = Cval, kernel = 'rbf', gamma= 'scale', class_weight = 'balanced')
+        clf = SVC(C = Cval, kernel = 'rbf', gamma= 'scale', class_weight = {1:1,0:2})
         P_test = clf.fit(trainx,trainy).decision_function(X_test)
+        return clf.score(X_test, y_test)
+        '''
         print("C =",Cval)
         print(clf.n_support_)
         print(clf.score(X_train, y_train))
         print(clf.score(X_test, y_test))
         
-        train_set.append(clf.score(X_train,y_train))
-        test_set.append(clf.score(X_test, y_test))
-        drawroc(y_test, P_test)
-        
-        
-        
-        
+        #train_set.append(clf.score(X_train,y_train))
+        #test_set.append(clf.score(X_test, y_test))
+        #drawroc(y_test, P_test)
+        '''
     '''
     plt.figure(figsize = (10, 10))
     xticks = list(map(lambda x: 'C = ' + str(x), index))
@@ -81,16 +82,17 @@ def rbfsvm(X_train, y_train, X_test, y_test):
         plt.text(x, z, '%0.2f %%' % (z * 100), ha='center', va='top',bbox=dict(facecolor='g', alpha=0.2))
     plt.savefig('./CorrectRate.png',dpi = 300)
     '''
+    
 
 
 def polysvm(X_train, y_train, X_test, y_test):
     from sklearn.svm import SVC
-    for Cval in range(1, 2):
+    for Cval in range(40, 50):
         for Deg in range(2, 3):
-            Cval = 1.8
+            Cval /= 10
             trainx = X_train.copy()
             trainy = y_train.copy()
-            clf = SVC(C = Cval, kernel = 'poly', degree = Deg, gamma= 'scale', class_weight = 'balanced')
+            clf = SVC(C = Cval, kernel = 'poly', degree = Deg, gamma = 'scale', class_weight = {1:1,0:2})
             P_test = clf.fit(trainx,trainy).decision_function(X_test)
             print("C =", Cval, "degree:", Deg)
             print(clf.n_support_)
@@ -151,9 +153,27 @@ if __name__ == "__main__":
     from sklearn.preprocessing import StandardScaler
     sl = StandardScaler()
     vec = sl.fit_transform(vec)
+    print(vec[lab==1].shape)
     from sklearn.model_selection import train_test_split
-    X_train, X_test, y_train, y_test = train_test_split(vec, lab ,random_state=88)
-    #rbfsvm(X_train, y_train, X_test, y_test)
-    #RandomForest(100, X_train, y_train, X_test, y_test)
-    polysvm(X_train, y_train, X_test, y_test)
+    lower = []
+    upper = []
+    total = []
+    for t in range(1,10):
+        X_train, X_test, y_train, y_test = train_test_split(vec, lab ,random_state = t*12)
+        print(t)
+        X_l = X_test[y_test == 0]
+        y_l = y_test[y_test == 0]
+        X_u = X_test[y_test == 1]
+        y_u = y_test[y_test == 1]
+        upper.append(rbfsvm(X_train, y_train, X_u, y_u))
+        lower.append(rbfsvm(X_train, y_train, X_l, y_l))
+        total.append(rbfsvm(X_train, y_train, X_test, y_test))
+        #RandomForest(100, X_train, y_train, X_test, y_test)
+        #polysvm(X_train, y_train, X_test, y_test)
+    print(upper)
+    print(lower)
+    print(total)
+    print("Up:", np.mean(upper))
+    print("Low:", np.mean(lower))
+    print("all:", np.mean(total))
     

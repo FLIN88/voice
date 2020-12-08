@@ -90,10 +90,10 @@ def deal(inpath, outpath, lab):
     #spectrum = spectrum.reshape(1,-1)[0]
     
     # MFCC
-    '''
+    
     frames = enframe(waveData, frame_length, frame_shift, np.hamming(frame_length))
     nf = frames.shape[0] - 1
-    #MFCC = np.zeros((L, nf))
+    MFCC = np.zeros((L, nf))
     logMel = np.zeros((P, nf))
     
     for i in range(nf):
@@ -117,15 +117,15 @@ def deal(inpath, outpath, lab):
     
     plt.pcolor(logMel, cmap = 'jet')
     plt.axis('off')
-    plt.savefig(path + '/' + str(lab) + '_logMel_' + prefix + '.png', bbox_inches = 'tight',pad_inches = 0, dpi =20)
+    plt.savefig(path + '/' + str(lab) + '_logMel_' + prefix + '.png', bbox_inches = 'tight',pad_inches = 0, dpi = 20)
     plt.clf()
     
     #画MFCC
     plt.pcolor(MFCC,cmap = 'jet')
     plt.axis('off')
-    plt.savefig(path + '/MFCC_' + prefix + '.png', bbox_inches = 'tight', pad_inches = 0)
+    plt.savefig(path + '/' + str(lab) + '_MFCC_' + prefix + '.png', bbox_inches = 'tight', pad_inches = 0, dpi = 20)
     plt.clf()
-    '''
+    
 def findwav(inpath, outpath, lab):
     '''
     扫描当前文件夹 inpath 的文件 f
