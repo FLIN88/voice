@@ -30,7 +30,17 @@ def drawroc(y_test, P_test):
     plt.show()
     #plt.savefig('./roc_c=%0.1f.png'%Cval,dpi=300)
     plt.clf()
-    
+def draw_distribution(X1, X2, fout=None):
+    plt.figure()
+    plt.hist([X1, X2], bins = 50, color = ['r','b'])
+    plt.grid()
+    plt.title('data distribution')
+    if fout:
+        plt.savefig(fout)
+    else:
+        plt.show()
+    plt.clf()
+
 def RandomForest(n_tree, X_train, y_train, X_test, y_test):
     from sklearn.ensemble import RandomForestClassifier
     for dep in range(1,20):
@@ -56,17 +66,21 @@ def rbfsvm(X_train, y_train, X_test, y_test):
         trainy = y_train.copy()
         clf = SVC(C = Cval, kernel = 'rbf', gamma= 'scale', class_weight = {1:1,0:2})
         P_test = clf.fit(trainx,trainy).decision_function(X_test)
-        return clf.score(X_test, y_test)
-        '''
+        neg = P_test[y_test==0]
+        pos = P_test[y_test==1]
+        draw_distribution(neg, pos)
+        #print(P_test)
+        #print(np.max(P_test), np.min(P_test),np.mean(P_test))
+        #return clf.score(X_test, y_test)
+        
         print("C =",Cval)
         print(clf.n_support_)
         print(clf.score(X_train, y_train))
         print(clf.score(X_test, y_test))
-        
         #train_set.append(clf.score(X_train,y_train))
         #test_set.append(clf.score(X_test, y_test))
         #drawroc(y_test, P_test)
-        '''
+
     '''
     plt.figure(figsize = (10, 10))
     xticks = list(map(lambda x: 'C = ' + str(x), index))
@@ -153,27 +167,35 @@ if __name__ == "__main__":
     from sklearn.preprocessing import StandardScaler
     sl = StandardScaler()
     vec = sl.fit_transform(vec)
-    print(vec[lab==1].shape)
-    from sklearn.model_selection import train_test_split
+    from sklearn.model_selection import KFold
+    kf = KFold(n_splits = 10, shuffle = True, random_state = 88)
     lower = []
     upper = []
     total = []
-    for t in range(1,10):
-        X_train, X_test, y_train, y_test = train_test_split(vec, lab ,random_state = t*12)
-        print(t)
-        X_l = X_test[y_test == 0]
-        y_l = y_test[y_test == 0]
-        X_u = X_test[y_test == 1]
-        y_u = y_test[y_test == 1]
-        upper.append(rbfsvm(X_train, y_train, X_u, y_u))
-        lower.append(rbfsvm(X_train, y_train, X_l, y_l))
-        total.append(rbfsvm(X_train, y_train, X_test, y_test))
+    for train_index, test_index in kf.split(vec):
+        X_train = vec[train_index]
+        y_train = lab[train_index]
+        X_test = vec[test_index]
+        y_test = lab[test_index]
+        print(test_index)
+        #print(t)
+        #X_l = X_test[y_test == 0]
+        #y_l = y_test[y_test == 0]
+        #X_u = X_test[y_test == 1]
+        #y_u = y_test[y_test == 1]
+        #upper.append(rbfsvm(X_train, y_train, X_u, y_u))
+        #lower.append(rbfsvm(X_train, y_train, X_l, y_l))
+        #total.append(rbfsvm(X_train, y_train, X_test, y_test))
         #RandomForest(100, X_train, y_train, X_test, y_test)
         #polysvm(X_train, y_train, X_test, y_test)
+        
+        #rbfsvm(X_train,y_train,X_test,y_test)
+    '''
     print(upper)
     print(lower)
     print(total)
     print("Up:", np.mean(upper))
     print("Low:", np.mean(lower))
     print("all:", np.mean(total))
+    '''
     
