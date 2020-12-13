@@ -34,9 +34,10 @@ def draw_distribution(X1, X2, fout=None):
     plt.figure()
     plt.hist([X1, X2], bins = 50, color = ['r','b'])
     plt.grid()
+    plt.ylim(0,80)
     plt.title('data distribution')
     if fout:
-        plt.savefig(fout)
+        plt.savefig(fout,dpi = 300)
     else:
         plt.show()
     plt.clf()
@@ -60,23 +61,24 @@ def rbfsvm(X_train, y_train, X_test, y_test):
     test_set = []
     index = []
     for Cval in range(1,2):
-        Cval = 1
+        Cval = 2
         index.append(Cval)
         trainx = X_train.copy()
         trainy = y_train.copy()
         clf = SVC(C = Cval, kernel = 'rbf', gamma= 'scale', class_weight = {1:1,0:2})
-        P_test = clf.fit(trainx,trainy).decision_function(X_test)
-        neg = P_test[y_test==0]
-        pos = P_test[y_test==1]
+        P_test = clf.fit(trainx,trainy).decision_function(trainx)
+        
+        neg = P_test[trainy==0]
+        pos = P_test[trainy==1]
         draw_distribution(neg, pos)
         #print(P_test)
         #print(np.max(P_test), np.min(P_test),np.mean(P_test))
         #return clf.score(X_test, y_test)
         
-        print("C =",Cval)
-        print(clf.n_support_)
-        print(clf.score(X_train, y_train))
-        print(clf.score(X_test, y_test))
+        #print("C =",Cval)
+        #print(clf.n_support_)
+        #print(clf.score(X_train, y_train))
+        #print(clf.score(X_test, y_test))
         #train_set.append(clf.score(X_train,y_train))
         #test_set.append(clf.score(X_test, y_test))
         #drawroc(y_test, P_test)
@@ -101,19 +103,17 @@ def rbfsvm(X_train, y_train, X_test, y_test):
 
 def polysvm(X_train, y_train, X_test, y_test):
     from sklearn.svm import SVC
-    for Cval in range(40, 50):
-        for Deg in range(2, 3):
-            Cval /= 10
-            trainx = X_train.copy()
-            trainy = y_train.copy()
-            clf = SVC(C = Cval, kernel = 'poly', degree = Deg, gamma = 'scale', class_weight = {1:1,0:2})
-            P_test = clf.fit(trainx,trainy).decision_function(X_test)
-            print("C =", Cval, "degree:", Deg)
-            print(clf.n_support_)
-            print(clf.score(X_train,y_train))
-            print(clf.score(X_test, y_test))
-            print()
-            drawroc(y_test, P_test)
+    Cval = 2
+    Deg = 2
+    clf = SVC(C = Cval, kernel = 'poly', degree = Deg, gamma = 'scale', class_weight = {1: 1,0: 1.5}) 
+    P_test = clf.fit(X_train,y_train).decision_function(X_test)
+    return clf.score(X_test,y_test)
+    print("C =", Cval, "degree:", Deg)
+    print(clf.n_support_)
+    print(clf.score(X_train,y_train))
+    print(clf.score(X_test, y_test))
+    print()
+    drawroc(y_test, P_test)
 
 def knnclf(X_train, y_train, X_test, y_test):
     from sklearn.neighbors import KNeighborsClassifier
@@ -167,35 +167,49 @@ if __name__ == "__main__":
     from sklearn.preprocessing import StandardScaler
     sl = StandardScaler()
     vec = sl.fit_transform(vec)
+    '''
+    from sklearn.model_selection import GridSearchCV
+    para = [{'kernel': ['rbf'], 'C': list(range(1,5)), 'class_weight': [{1: 1, 0: 2}, {1: 1, 0: 1}]},
+    {'kernel': ['poly'], 'C': list(range(1,5)), 'class_weight': [{1: 1, 0: 2}, {1: 1, 0: 1}],'degree': list(range(1,5))}]
+    from sklearn.svm import SVC
+    import pandas as pd
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(vec, lab, random_state = 6)
+    clf = GridSearchCV(SVC(), para)
+    clf.fit(X_train, y_train)
+    data = pd.DataFrame(clf.cv_results_)
+    data.to_csv('./cv_results.csv')
+    print(clf.cv_results_['params'][clf.best_index_])
+    '''
     from sklearn.model_selection import KFold
-    kf = KFold(n_splits = 10, shuffle = True, random_state = 88)
+    kf = KFold(n_splits = 10, shuffle = True, random_state = 66)
     lower = []
     upper = []
     total = []
+    cas=0
     for train_index, test_index in kf.split(vec):
+        cas+=1
         X_train = vec[train_index]
         y_train = lab[train_index]
         X_test = vec[test_index]
         y_test = lab[test_index]
-        print(test_index)
-        #print(t)
-        #X_l = X_test[y_test == 0]
-        #y_l = y_test[y_test == 0]
-        #X_u = X_test[y_test == 1]
-        #y_u = y_test[y_test == 1]
-        #upper.append(rbfsvm(X_train, y_train, X_u, y_u))
-        #lower.append(rbfsvm(X_train, y_train, X_l, y_l))
-        #total.append(rbfsvm(X_train, y_train, X_test, y_test))
+        
+        #print(test_index)
+        print(cas)
+        X_l = X_test[y_test == 0]
+        y_l = y_test[y_test == 0]
+        X_u = X_test[y_test == 1]
+        y_u = y_test[y_test == 1]
+        upper.append(polysvm(X_train, y_train, X_u, y_u))
+        lower.append(polysvm(X_train, y_train, X_l, y_l))
+        total.append(polysvm(X_train, y_train, X_test, y_test))
         #RandomForest(100, X_train, y_train, X_test, y_test)
         #polysvm(X_train, y_train, X_test, y_test)
         
         #rbfsvm(X_train,y_train,X_test,y_test)
-    '''
-    print(upper)
-    print(lower)
-    print(total)
+        
+    
     print("Up:", np.mean(upper))
     print("Low:", np.mean(lower))
     print("all:", np.mean(total))
-    '''
     
