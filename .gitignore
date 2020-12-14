@@ -1,5 +1,5 @@
 /*
 !.gitignore
-!features.py
-!clf.py
-!node.md
+!*.py
+!*.md
+!*.png
