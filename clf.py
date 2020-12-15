@@ -31,42 +31,42 @@ def drawroc(y_test, P_test):
     plt.clf()
 def draw_distribution(X1, X2, fout=None):
     plt.figure()
-    plt.hist([X1, X2], bins = 50, color = ['r','b'])
+    plt.hist([X1, X2], bins = 50, color = ['b','r'], label = ['low','up'])
     plt.grid()
-    #plt.ylim(0,80)
+    #plt.ylim(0,50)
     plt.ylabel('number of samples')
     plt.title('data distribution histogram')
+    plt.legend(loc="upper left")
     if fout:
         plt.savefig(fout,dpi = 300)
     else:
         plt.show()
     plt.clf()
 
-def RandomForest(n_tree, X_train, y_train, X_test, y_test):
+def RandomForest(X_train, y_train, X_test, y_test):
     from sklearn.ensemble import RandomForestClassifier
-    for dep in range(1,20):
-        trainx = X_train.copy()
-        trainy = y_train.copy()
-        clf = RandomForestClassifier(n_estimators = 50, random_state = 88, max_depth = dep, class_weight = 'balanced')
-        clf.fit(trainx,trainy)
-        print("max_depth =",dep)
-        print(clf.score(X_train,y_train))
-        print(clf.score(X_test, y_test))
-        print()
+    dep = 10
+    n = 200
+    clf = RandomForestClassifier(n_estimators = n, random_state = 88, max_depth = dep, class_weight = {1: 1, 0: 3})
+    clf.fit(X_train,y_train)
+    #return clf.score(X_test, y_test)
+    return clf.predict_proba(X_test)[:, 1]
+    #print(clf.score(X_train,y_train))
+    #print(clf.score(X_test, y_test))
 
 
 def rbfsvm(X_train, y_train, X_test, y_test):
     from sklearn.svm import SVC
     Cval = 4
-    clf = SVC(C = Cval, kernel = 'rbf', gamma= 'scale', class_weight = {1:1,0:4})
-    P_test = clf.fit(X_train, y_train).decision_function(X_test)
-    
+    clf = SVC(C = Cval, kernel = 'rbf', gamma= 'scale', class_weight = {1:1,0:2})
+    P_test = clf.fit(X_train, y_train).decision_function(X_train)
+    return P_test
     #neg = P_test[y_train==0]
     #pos = P_test[y_train==1]
     #draw_distribution(neg, pos)
     #print(P_test)
     #print(np.max(P_test), np.min(P_test),np.mean(P_test))
-    return clf.score(X_test, y_test)
+    #return clf.score(X_test, y_test)
         
     #print("C =",Cval)
     #print(clf.n_support_)
@@ -99,7 +99,7 @@ def polysvm(X_train, y_train, X_test, y_test):
     Cval = 2
     Deg = 2
     clf = SVC(C = Cval, kernel = 'poly', degree = Deg, gamma = 'scale', class_weight = {1: 1,0: 2}) 
-    P_test = clf.fit(X_train,y_train).decision_function(X_test)
+    P_test = clf.fit(X_train,y_train).decision_function(X_train)
     return P_test
     #return clf.score(X_test,y_test)
     print("C =", Cval, "degree:", Deg)
@@ -122,7 +122,7 @@ def knnclf(X_train, y_train, X_test, y_test):
         print()
 
 if __name__ == "__main__":
-    
+    '''
     # 读取图片特征+PCA
     vec = []
     lab = []
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     plt.scatter(data[lab==1, 0],data[lab==1, 1],c = 'b')
     plt.savefig('./Before_TSNE_5.png',dpi = 300)
     plt.show()
-    '''
+    
     print(vec.shape)
     print("PCA:")
     pca = PCA(n_components = 0.85)
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     fvec.close()
     flab.close()
     '''
-    '''
+    
     fvec = open('./specvec.txt','rb')
     flab = open('./speclab.txt','rb')
     vec = pickle.load(fvec)
@@ -174,32 +174,31 @@ if __name__ == "__main__":
     sl = StandardScaler()
     vec = sl.fit_transform(vec)
     '''
-
+    X_train = vec 
+    y_train = lab
+    X_test = 0
+    y_test = 0
     '''
     # 画分布图
     from sklearn.model_selection import train_test_split
-    X_train, X_test, y_train, y_test = train_test_split(vec, lab, random_state = 8)
-    P_test = polysvm(X_train, y_train, X_test, y_test)
+    X_train, X_test, y_train, y_test = train_test_split(vec, lab, random_state = 66)
+    P_test = RandomForest(X_train, y_train, X_test, y_test)
     neg = P_test[y_test==0]
     pos = P_test[y_test==1]
-    draw_distribution(neg, pos, './DataDistri_test8')
-    '''
-
+    draw_distribution(neg, pos, './ran_DataDistri_test66.png')
     
-
     '''
     # 搜索超参数
     from sklearn.model_selection import GridSearchCV
-    para = [{'kernel': ['rbf'], 'C': list(range(1,5)), 'class_weight': [{1: 1, 0: 2}, {1: 1, 0: 1}]},
-    {'kernel': ['poly'], 'C': list(range(1,5)), 'class_weight': [{1: 1, 0: 2}, {1: 1, 0: 1}],'degree': list(range(1,5))}]
-    from sklearn.svm import SVC
+    para = {'n_estimators': list(range(50,300,50)), 'class_weight': [{1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}]}
+    from sklearn.ensemble import RandomForestClassifier
     import pandas as pd
     from sklearn.model_selection import train_test_split
-    X_train, X_test, y_train, y_test = train_test_split(vec, lab, random_state = 6)
-    clf = GridSearchCV(SVC(), para)
+    X_train, X_test, y_train, y_test = train_test_split(vec, lab, random_state = 8)
+    clf = GridSearchCV(RandomForestClassifier(), para)
     clf.fit(X_train, y_train)
     data = pd.DataFrame(clf.cv_results_)
-    data.to_csv('./cv_results.csv')
+    data.to_csv('./rfst_None_cv_results.csv')
     print(clf.cv_results_['params'][clf.best_index_])
     '''
     '''
@@ -213,6 +212,7 @@ if __name__ == "__main__":
     plt.ylabel('True Positive Rate')
     plt.title('Receiver operating characteristic curve')
     plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+    plt.plot([0, 1], [1, 0], color='navy', lw=lw, linestyle='--')
     cs = ['red','orange','yellow','green','cyan',
       'blue','purple','pink','magenta','brown']
     
@@ -235,27 +235,24 @@ if __name__ == "__main__":
         y_l = y_test[y_test == 0]
         X_u = X_test[y_test == 1]
         y_u = y_test[y_test == 1]
-        upper.append(polysvm(X_train, y_train, X_u, y_u))
-        lower.append(polysvm(X_train, y_train, X_l, y_l))
-        total.append(polysvm(X_train, y_train, X_test, y_test))
+        upper.append(RandomForest(X_train, y_train, X_u, y_u))
+        lower.append(RandomForest(X_train, y_train, X_l, y_l))
+        total.append(RandomForest(X_train, y_train, X_test, y_test))
         
-        #RandomForest(100, X_train, y_train, X_test, y_test)
-        #rbfsvm(X_train,y_train,X_test,y_test)
-        
-        P_test = rbfsvm(X_train, y_train, X_test, y_test)
+        P_test = RandomForest(X_train, y_train, X_test, y_test)
         fpr, tpr, threshold = roc_curve(y_test, P_test)
         roc_auc = auc(fpr,tpr)
         plt.plot(fpr, tpr, color = cs[cas],
             lw=lw, label='AUC = %0.2f' % roc_auc) ###假正率为横坐标，真正率为纵坐标做曲线
-
+        
         cas+=1
     
     print("Up:", np.mean(upper))
     print("Low:", np.mean(lower))
     print("all:", np.mean(total))
-    '''
-    '''
-    plt.legend(loc="lower right")
-    plt.savefig('./ROC_with_Rbf.png', dpi = 300)
-    '''
     
+    
+    plt.legend(loc="lower right")
+    plt.savefig('./ran_ROC.png', dpi = 300)
+    #plt.show()
+    '''

@@ -1,4 +1,5 @@
 
+# Spec
 ### 用 poly 核SVM C=2 degree=2 
 |核函数|class_weight|up|low|all
 |:---:|:---:|:---:|:---:|:---:|
@@ -50,4 +51,19 @@
 <img src="./DataDistri_test66.png" width = "50%" alt="图片名称" align=center />
 
 可见两类的分布是有各自的中心的
+
+
+### 用 RandomForestClassifier n_estimators=200 max_depth=10 
+n_estimators=200 max_depth=10 
+|class_weight|up|low|all|
+|:---:|:---:|:---:|:---:|:---:|
+|1:1|96.17%|52.69%|78.42%|
+|1:1.5|91.70%|58.99%|78.30%|
+|1:2|86.29%|66.46%|78.10%|
+|1:3|74.67%|76.04%|75.04%|
+|1:4|63.98%|81.73%|71.07%|
+
+取 class_weight=1:3
+
+# LogMel
 
