@@ -33,7 +33,7 @@ def draw_distribution(X1, X2, fout=None):
     plt.figure()
     plt.hist([X1, X2], bins = 50, color = ['b','r'], label = ['low','up'])
     plt.grid()
-    #plt.ylim(0,50)
+    #plt.ylim(0,30)
     plt.ylabel('number of samples')
     plt.title('data distribution histogram')
     plt.legend(loc="upper left")
@@ -45,9 +45,9 @@ def draw_distribution(X1, X2, fout=None):
 
 def RandomForest(X_train, y_train, X_test, y_test):
     from sklearn.ensemble import RandomForestClassifier
-    dep = 10
-    n = 200
-    clf = RandomForestClassifier(n_estimators = n, random_state = 88, max_depth = dep, class_weight = {1: 1, 0: 3})
+    dep = 5
+    n = 250
+    clf = RandomForestClassifier(n_estimators = n, random_state = 88, max_depth = dep, class_weight = {1: 1, 0: 1.6})
     clf.fit(X_train,y_train)
     #return clf.score(X_test, y_test)
     return clf.predict_proba(X_test)[:, 1]
@@ -57,15 +57,11 @@ def RandomForest(X_train, y_train, X_test, y_test):
 
 def rbfsvm(X_train, y_train, X_test, y_test):
     from sklearn.svm import SVC
-    Cval = 4
-    clf = SVC(C = Cval, kernel = 'rbf', gamma= 'scale', class_weight = {1:1,0:2})
-    P_test = clf.fit(X_train, y_train).decision_function(X_train)
+    Cval = 2
+    clf = SVC(C = Cval, kernel = 'rbf', gamma= 'scale', class_weight = {1: 1, 0: 2})
+    P_test = clf.fit(X_train, y_train).decision_function(X_test)
     return P_test
-    #neg = P_test[y_train==0]
-    #pos = P_test[y_train==1]
-    #draw_distribution(neg, pos)
-    #print(P_test)
-    #print(np.max(P_test), np.min(P_test),np.mean(P_test))
+    #clf.fit(X_train, y_train)
     #return clf.score(X_test, y_test)
         
     #print("C =",Cval)
@@ -96,12 +92,13 @@ def rbfsvm(X_train, y_train, X_test, y_test):
 
 def polysvm(X_train, y_train, X_test, y_test):
     from sklearn.svm import SVC
-    Cval = 2
-    Deg = 2
-    clf = SVC(C = Cval, kernel = 'poly', degree = Deg, gamma = 'scale', class_weight = {1: 1,0: 2}) 
-    P_test = clf.fit(X_train,y_train).decision_function(X_train)
-    return P_test
+    Cval = 1
+    Deg = 1
+    clf = SVC(C = Cval, kernel = 'poly', degree = Deg, gamma = 'scale', class_weight = {1: 1, 0: 1.7}) 
+    #clf.fit(X_train,y_train)
     #return clf.score(X_test,y_test)
+    P_test = clf.fit(X_train,y_train).decision_function(X_test)
+    return P_test
     print("C =", Cval, "degree:", Deg)
     print(clf.n_support_)
     print(clf.score(X_train,y_train))
@@ -164,8 +161,8 @@ if __name__ == "__main__":
     flab.close()
     '''
     
-    fvec = open('./specvec.txt','rb')
-    flab = open('./speclab.txt','rb')
+    fvec = open('./MFCCvec.txt','rb')
+    flab = open('./MFCClab.txt','rb')
     vec = pickle.load(fvec)
     lab = pickle.load(flab).ravel()
     fvec.close()
@@ -175,14 +172,16 @@ if __name__ == "__main__":
     vec = sl.fit_transform(vec)
     '''
     X_train = vec 
-    y_train = lab
+    y_train = lab 
     X_test = 0
     y_test = 0
     '''
     # 画分布图
     from sklearn.model_selection import train_test_split
     X_train, X_test, y_train, y_test = train_test_split(vec, lab, random_state = 66)
+
     P_test = RandomForest(X_train, y_train, X_test, y_test)
+
     neg = P_test[y_test==0]
     pos = P_test[y_test==1]
     draw_distribution(neg, pos, './ran_DataDistri_test66.png')
@@ -190,15 +189,18 @@ if __name__ == "__main__":
     '''
     # 搜索超参数
     from sklearn.model_selection import GridSearchCV
-    para = {'n_estimators': list(range(50,300,50)), 'class_weight': [{1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}]}
-    from sklearn.ensemble import RandomForestClassifier
+    #para = {'n_estimators': list(range(50,300,50)), 'class_weight': [{1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}], 'max_depth': list(range(5, 30, 5))}
+    para = [{'kernel': ['rbf'], 'class_weight': [{1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}], 'C': list(range(1,6))},
+        {'kernel': ['poly'], 'class_weight': [{1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}], 'C': list(range(1,6)), 'degree': list(range(1,5))}]
+    #from sklearn.ensemble import RandomForestClassifier
+    from sklearn.svm import SVC
     import pandas as pd
     from sklearn.model_selection import train_test_split
     X_train, X_test, y_train, y_test = train_test_split(vec, lab, random_state = 8)
-    clf = GridSearchCV(RandomForestClassifier(), para)
+    clf = GridSearchCV(SVC(), para)
     clf.fit(X_train, y_train)
     data = pd.DataFrame(clf.cv_results_)
-    data.to_csv('./rfst_None_cv_results.csv')
+    data.to_csv('./cv_results_svm.csv')
     print(clf.cv_results_['params'][clf.best_index_])
     '''
     '''
@@ -250,7 +252,6 @@ if __name__ == "__main__":
     print("Up:", np.mean(upper))
     print("Low:", np.mean(lower))
     print("all:", np.mean(total))
-    
     
     plt.legend(loc="lower right")
     plt.savefig('./ran_ROC.png', dpi = 300)
