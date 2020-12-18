@@ -92,19 +92,19 @@ def rbfsvm(X_train, y_train, X_test, y_test):
 
 def polysvm(X_train, y_train, X_test, y_test):
     from sklearn.svm import SVC
-    Cval = 1
-    Deg = 1
-    clf = SVC(C = Cval, kernel = 'poly', degree = Deg, gamma = 'scale', class_weight = {1: 1, 0: 1.7}) 
-    #clf.fit(X_train,y_train)
+    Cval = 2
+    Deg = 2
+    clf = SVC(C = Cval, kernel = 'poly', degree = Deg, gamma = 'scale', class_weight = {1: 1, 0: 2}) 
+    clf.fit(X_train,y_train)
     #return clf.score(X_test,y_test)
-    P_test = clf.fit(X_train,y_train).decision_function(X_test)
-    return P_test
+    #P_test = clf.fit(X_train,y_train).decision_function(X_test)
+    #return P_test
     print("C =", Cval, "degree:", Deg)
     print(clf.n_support_)
-    print(clf.score(X_train,y_train))
-    print(clf.score(X_test, y_test))
-    print()
-    drawroc(y_test, P_test)
+    #print(clf.score(X_train,y_train))
+    #print(clf.score(X_test, y_test))
+    #print()
+    #drawroc(y_test, P_test)
 
 def knnclf(X_train, y_train, X_test, y_test):
     from sklearn.neighbors import KNeighborsClassifier
@@ -171,22 +171,22 @@ if __name__ == "__main__":
     sl = StandardScaler()
     vec = sl.fit_transform(vec)
     print(vec.shape)
-    '''
+    
     X_train = vec 
     y_train = lab 
     X_test = 0
     y_test = 0
     
     # 画分布图
-    from sklearn.model_selection import train_test_split
-    X_train, X_test, y_train, y_test = train_test_split(vec, lab, random_state = 66)
+    #from sklearn.model_selection import train_test_split
+    #X_train, X_test, y_train, y_test = train_test_split(vec, lab, random_state = 66)
 
-    P_test = RandomForest(X_train, y_train, X_test, y_test)
+    P_test = polysvm(X_train, y_train, X_test, y_test)
 
-    neg = P_test[y_test==0]
-    pos = P_test[y_test==1]
-    draw_distribution(neg, pos, './ran_DataDistri_test66.png')
-    '''
+    #neg = P_test[y_test==0]
+    #pos = P_test[y_test==1]
+    #draw_distribution(neg, pos, './ran_DataDistri_test66.png')
+    
     '''
     # 搜索超参数
     from sklearn.model_selection import GridSearchCV

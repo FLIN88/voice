@@ -1,147 +1,4 @@
 
-# Spec
-### 用 poly 核SVM C=2 degree=2 
-|核函数|class_weight|up|low|all
-|:---:|:---:|:---:|:---:|:---:|
-|poly|1:1|90.83%|69.74%|82.22%|
-|poly|1:1.5|85.15%|77.44%|82.02%|
-|poly|1:2|81.00%|80.16%|80.65%|
-两类正确率的以平衡
-
-### 用 rbf 核SVM C=4 
-|核函数|class_weight|up|low|all
-|:---:|:---:|:---:|:---:|:---:|
-|rbf|1:1|90.50%|68.78%|81.59%|
-|rbf|1:1.5|89.10%|69.53%|81.04%|
-|rbf|1:2|88.84%|69.44%|80.85%|
-|rbf|1:4|88.30%|70.37%|80.93%|
-|rbf|1:8|88.30%|70.37%|80.93%|
-无论如何加大负类的权值，也没能平衡两类的正确率
-用 1:2
-
-### 用综合表现最好的参数画出ROC曲线
-
-参数：`poly` 核，$C=2，degree=2，class\_weight=1:2$ 
-
-进行10折交叉验证，每次利在测试集上作出一条ROC曲线
-
-<img src="./ROC_with_Poly.png" width = "50%" alt="图片名称" align=center />
-
-### 用decision_function() 画出样本分布直方图
-
-用所有样本训练以下参数的SVM后
-
-参数：`poly` 核，$C=2，degree=2，class\_weight=1:2$ 
-
-用decesion_function() 得到各样本到超平面距离，画出分布
-
-<img src="./DataDistri.png" width = "50%" alt="图片名称" align=center />
-
-放大底部
-
-<img src="./DataDistri_lim.png" width = "50%" alt="图片名称" align=center />
-
-随机划分 75% 的样本作为训练集，25%作为测试集，训练同以上参数的SVM，用同样的方法，作出测试集样本的分布
-
-重复3次
-
-<img src="./DataDistri_test.png" width = "50%" alt="图片名称" align=center />
-
-<img src="./DataDistri_test1.png" width = "50%" alt="图片名称" align=center />
-
-<img src="./DataDistri_test66.png" width = "50%" alt="图片名称" align=center />
-
-可见两类的分布是有各自的中心的
-
-
-### 用 RandomForestClassifier n_estimators=200 max_depth=10 
-n_estimators=200 max_depth=10 
-|class_weight|up|low|all|
-|:---:|:---:|:---:|:---:|:---:|
-|1:1|96.17%|52.69%|78.42%|
-|1:1.5|91.70%|58.99%|78.30%|
-|1:2|86.29%|66.46%|78.10%|
-|1:3|74.67%|76.04%|75.04%|
-|1:4|63.98%|81.73%|71.07%|
-
-取 class_weight=1:3
-
-# LogMel
-
-### 用 RandomForestClassifier n_estimators=100 max_depth=10 
-n_estimators=200 max_depth=10 
-|class_weight|up|low|all|
-|:---:|:---:|:---:|:---:|:---:|
-|1:1|96.10%|45.35%|75.51%|
-|1:1.5|89.94%|58.86%|77.28%|
-|1:2|81.55%|65.80%|75.12%|
-|1:2.5|73.49%|71.94%|72.76%|
-|1:3|66.18%|77.08%|70.49%|
-|1:4|55.18%|84.12%|66.76%|
-最好的是 1:2.5
-
-
-### 用 poly 核SVM C=2 degree=2 
-|核函数|class_weight|up|low|all
-|:---:|:---:|:---:|:---:|:---:|
-|poly|1:1|91.29%|66.72%|81.24%|
-|poly|1:1.5|78.09%|78.06%|77.98%|
-|poly|1:2|73.33%|79.76%|75.82%|
-1:1.5 两类正确率的以平衡
-
-### 用 rbf 核SVM C=4 
-|核函数|class_weight|up|low|all
-|:---:|:---:|:---:|:---:|:---:|
-|rbf|1:1|89.58%|66.75%|80.30%|
-|rbf|1:1.5|89.40%|66.97%|80.25%|
-|rbf|1:2|89.26%|66.93%|80.18%|
-|rbf|1:4|89.19%|67.02%|80.18%|
-|rbf|1:8|89.19%|67.02%|80.18%|
-
-无法平衡两类正确率
-
-# MFCC
-### 用 poly 核SVM C=1 degree=1 
-|核函数|class_weight|up|low|all
-|:---:|:---:|:---:|:---:|:---:|
-|poly|1:1|86.66%|64.45%|77.70%|
-|poly|1:1.5|78.23%|73.39%|76.29%|
-|poly|1:1.7|75.15%|74.48%|75.00%|
-|poly|1:2|71.61%|77.57%|74.02%|
-最好是1:1.7
-
-### 用 rbf 核SVM C=2 
-|核函数|class_weight|up|low|all
-|:---:|:---:|:---:|:---:|:---:|
-|rbf|1:1|88.82%|60.18%|77.24%|
-|rbf|1:1.5|86.80%|62.35%|76.88%|
-|rbf|1:2|85.82%|63.02%|76.57%|
-|rbf|1:4|85.43%|62.77%|76.22%|
-|rbf|1:8|85.43%|62.77%|76.22%|
-
-用1:2 
-
-### 用 RandomForestClassifier n_estimators=250 max_depth=5 
-n_estimators=200 max_depth=10 
-|class_weight|up|low|all|
-|:---:|:---:|:---:|:---:|:---:|
-|1:1|99.35%|16.98%|65.93%|
-|1:1.5|82.58%|65.83%|75.55%|
-|1:1.6|72.58%|73.51%|72.72%|
-|1:1.7|62.88%|81.41%|70.21%|
-|1:2|34.39%|93.40%|58.16%|
-用1:1.6
-
-
-
-所用特征和分类器如下
-
-|LogMel|Spectrum|MFCC|
-|:-:|:-:|:-:|
-|SVM-rbf|SVM-rbf|SVM-rbf|
-|SVM-poly|SVM-poly|SVM-poly|
-|RandomForest|RandomForest|RandomForest|
-
 # 特征预处理
 
 特征图片均为 $99\times 73$ 的 RGB 图片，转化为灰度图后按行展开为 $7227$ 维的向量，所有样本进行主成分分析法降维，降维参数为保留样本矩阵的 $85\%$ 的方差。 LogMel、Spectrum、MFCC 分别降至460、198、574维。其中 Spectrum 特征的降维效果最好，说明特征信息集中在更少的维度上。
@@ -151,24 +8,447 @@ n_estimators=200 max_depth=10
 
 # 分类
 
-确定了分类器后，考虑用 sklearn 库的 Gridsearchcv 函数来搜索最优参数，其做法是对给出的各个参数组合进行枚举后暴力测试，所用的测设方法为5折交叉验证，评价标准为分类正正确率。
+## Spectrum 特征
+
+确定了特征和分类器后，考虑用 sklearn 库的 Gridsearchcv 函数来搜索最优参数，其做法是对给出范围内的各种参数组合进行暴力枚举后测试，所用的测试方法为5折交叉验证，评价标准为测试集上分类正确率。
 
 各个分类器的搜索范围如下
 
 * SVM-rbf
-    C: 1,2,3,4,5
-    gamma: 'scale'
-    class_weight: {1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}
+
+    `C`: 1,2,3,4,5
+
+    `class_weight`: {1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}
+
 * SVM-poly
-    C: 1,2,3,4,5
-    degree: 1,2,3,4
-    gamma: 'scale'
-    class_weight: {1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}
+
+    `C`: 1,2,3,4,5
+
+    `degree`: 1,2,3,4
+
+    `class_weight`: {1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}
+
 * RandomForest
-    n_estimators: 50,100,150,200,250,300
-    max_depth: 5,10,15,20,25,30
+
+    `n_estimators`: 50,100,150,200,250,300
+
+    `max_depth`: 5,10,15,20,25,30
 
 其中 SVM 的 `gamma` 参数在手动尝试测试时发现 设置为 'scale' （即根据样本 X 的方差和样本个数进行计算得出的值）是优于所有手动尝试的结果的
 
-## Spectrum
-搜索的出的最优参数
+
+搜索的出的最优参数如下
+
+* SVM-rbf
+
+    `C`: 4
+
+    `class_weight`: {1: 1, 0: 1}
+
+* SVM-poly
+
+    `C`: 2
+
+    `degree`: 2
+
+    `class_weight`: {1: 1, 0: 1}
+
+* RandomForest
+
+    `n_estimators`: 200
+
+    `max_depth`: 10
+
+    `class_weight`: {1: 1, 0: 1}
+
+由于两类样本的不均衡，对于最优参数还手动调整两类权重，进行10折交叉验证，用训练集训练以上最优参数的分类器，记录测试集上的正类分类正确率、负类分类正确率和综合分类正确率，结果如下表,其中 class_weight 为 正类 : 负类 。
+<center>
+
+### SVM
+
+|核函数|class_weight|up|low|all
+|:---:|:---:|:---:|:---:|:---:|
+|rbf|1:1|90.50%|68.78%|81.59%|
+|rbf|1:1.5|89.10%|69.53%|81.04%|
+|rbf|1:2|88.84%|69.44%|80.85%|
+|rbf|1:4|88.30%|70.37%|80.93%|
+|rbf|1:8|88.30%|70.37%|80.93%|
+|poly|1:1|90.83%|69.74%|82.22%|
+|poly|1:1.5|85.15%|77.44%|82.02%|
+|poly|1:2|81.00%|80.16%|80.65%|
+
+</center>
+<center>
+
+### RandomForests
+
+|class_weight|up|low|all|
+|:---:|:---:|:---:|:---:|:---:|
+|1:1|96.17%|52.69%|78.42%|
+|1:1.5|91.70%|58.99%|78.30%|
+|1:2|86.29%|66.46%|78.10%|
+|1:3|74.67%|76.04%|75.04%|
+|1:4|63.98%|81.73%|71.07%|
+
+</center>
+从以上结果可以看到，当两类权重为 1:1 时，综合正确率虽然是最高的，但是在两类上的正确率悬殊，这说明综合正确率高并不一定说明分类的综合效果好。
+
+但可以看到随着负类权重的提高，两类正确率的差距在缩小，其中 poly 核 SVM 在 权重为 1:2 时，两类的正确率几乎得到了平衡，并且综合正确率也在 $80.65\%$ 并未下降太多。而 rbf 核 SVM 的两类正确率在负类权重提高到一定程度后，就不在改变了，无法达到平衡。RandomForest 则在 1:3 时接近平衡，但综合正确率只有 $75.04\%$。
+
+现为各个分类器选定最优参数如下
+
+* SVM-rbf
+
+    `C`: 4
+
+    `class_weight`: {1: 1, 0: 2}
+
+* SVM-poly
+
+    `C`: 2
+
+    `degree`: 2
+
+    `class_weight`: {1: 1, 0: 2}
+
+* RandomForest
+
+    `n_estimators`: 200
+
+    `max_depth`: 10
+
+    `class_weight`: {1: 1, 0: 3}
+
+### ROC 曲线分析
+用以上测试出的最优权重最优参数对三种分类器进行10折交叉验证，其中作出各自的 ROC 曲线。
+
+* SVM-rbf
+<center>
+    <img src="./Spec/rbf_ROC.png" width = "60%" alt="rbf-ROC" align=center />
+</center>
+
+* SVM-poly
+<center>
+    <img src="./Spec/poly_ROC.png" width = "60%" alt="poly-ROC" align=center />
+</center>
+
+* RandomForest
+<center>
+    <img src="./Spec/ran_ROC.png" width = "60%" alt="ran-ROC" align=center />
+</center>
+
+无论是从 ROC 曲线形状还是平均 AUC 值来看，都是 poly 核 SVM 的表现更加出色，与综合正确率的表现相当。
+
+### 样本分布
+
+下面从样本在决策面附近的分布的情况来评估各个分类器的性能。
+
+先以所有数据来训练各个分类器后，画出所有数据的分布直方图，SVM 分类器中横轴为样本到决策超平面的归一化几何距离，RandomForest 分类器中为样本为正类的概率。
+
+* SVM-rbf
+<center>
+    <img src="./Spec/rbf_DataDistri.png" width = "50%" alt="rbf-ROC" align=center /><img src="./Spec/rbf_DataDistri_lim.png" width = "50%" alt="rbf-ROC" align=center />
+</center>
+
+* SVM-poly
+<center>
+    <img src="./Spec/poly_DataDistri.png" width = "50%" alt="rbf-ROC" align=center /><img src="./Spec/poly_DataDistri_lim.png" width = "50%" alt="rbf-ROC" align=center />
+</center>
+
+* RandomForest
+<center>
+    <img src="./Spec/ran_DataDistri.png" width = "60%" alt="rbf-ROC" align=center />
+</center>
+
+从以上可以看出各个分类器都把样本显著分开，但这是把所有的样本都用于训练，并未能代表分类器拥有泛化能力。而且从 SVM 中的分布来看，$91.5\%$ 的样本分布在 $-1$ 和 $1$ 附近，说明有过拟合的可能。
+
+以下在把数据随机划分 $75.5\%$ 为训练集，余下为测试集，以训练集训练分类器后，作出测试集的样本分布。每个分类器重复三次作出三张分布图。
+
+* SVM-rbf
+<center>
+    <img src="./Spec/rbf_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./Spec/rbf_DataDistri_test8.png" width = "30%" alt="rbf-ROC" align=center /><img src="./Spec/rbf_DataDistri_test66.png" width = "30%" alt="rbf-ROC" align=center />
+</center>
+
+* SVM-poly
+<center>
+    <img src="./Spec/poly_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./Spec/poly_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./Spec/poly_DataDistri_test66.png" width = "30%" alt="rbf-ROC" align=center />
+</center>
+
+* RandomForest
+<center>
+    <img src="./Spec/ran_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./Spec/ran_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./Spec/ran_DataDistri_test66.png" width = "30%" alt="rbf-ROC" align=center />
+</center>
+
+从测试集样本的分布来看，poly 核 SVM 的分类能力是最好的，两类的分布明显有各自的分布中心，并且样本在中心比较聚集，两类仅有少部分重叠，与其10折交叉验证的 $80.65\%$ 正确率相匹配。相比之下 rbf 中两类虽也有明显分布中心，但负类分布比较分散，这也与其负类准确率偏低相契合，RandomForest 中的负类分布也是如此。同时三个分类器的正类分布都大致相同。负类的分散是导致效果差距的主要原因。
+
+## LogMel 特征
+
+对 LogMel 特征也进行同上的测试，也得到了相似的结论，但分类效果要稍微和差一些。
+
+在同上的参数搜索范围内搜索出的最优参数如下
+
+* SVM-rbf
+
+    `C`: 4
+
+    `class_weight`: {1: 1, 0: 1}
+
+* SVM-poly
+
+    `C`: 2
+
+    `degree`: 2
+
+    `class_weight`: {1: 1, 0: 1}
+
+* RandomForest
+
+    `n_estimators`: 100
+
+    `max_depth`: 10
+
+    `class_weight`: {1: 1, 0: 1.5}
+
+
+调整两类权重进行测试
+<center>
+
+### SVM
+
+|核函数|class_weight|up|low|all
+|:---:|:---:|:---:|:---:|:---:|
+|rbf|1:1|89.58%|66.75%|80.30%|
+|rbf|1:1.5|89.40%|66.97%|80.25%|
+|rbf|1:2|89.26%|66.93%|80.18%|
+|rbf|1:4|89.19%|67.02%|80.18%|
+|rbf|1:8|89.19%|67.02%|80.18%|
+|poly|1:1|91.29%|66.72%|81.24%|
+|poly|1:1.5|78.09%|78.06%|77.98%|
+|poly|1:2|73.33%|79.76%|75.82%|
+
+
+### RandomForestClassifier
+|class_weight|up|low|all|
+|:---:|:---:|:---:|:---:|:---:|
+|1:1|96.10%|45.35%|75.51%|
+|1:1.5|89.94%|58.86%|77.28%|
+|1:2|81.55%|65.80%|75.12%|
+|1:2.5|73.49%|71.94%|72.76%|
+|1:3|66.18%|77.08%|70.49%|
+|1:4|55.18%|84.12%|66.76%|
+
+</center>
+
+最好的是两类正确率平衡后的 poly 核 SVM ，综合正确率为 $77.98\%$
+
+为各个分类器选定最优参数如下
+
+* SVM-rbf
+
+    `C`: 4
+
+    `class_weight`: {1: 1, 0: 2}
+
+* SVM-poly
+
+    `C`: 2
+
+    `degree`: 2
+
+    `class_weight`: {1: 1, 0: 1.5}
+
+* RandomForest
+
+    `n_estimators`: 100
+
+    `max_depth`: 10
+
+    `class_weight`: {1: 1, 0: 2.5}
+
+### ROC 曲线分析
+
+
+* SVM-rbf
+<center>
+    <img src="./LogMel/rbf_ROC.png" width = "60%" alt="rbf-ROC" align=center />
+</center>
+
+* SVM-poly
+<center>
+    <img src="./LogMel/poly_ROC.png" width = "60%" alt="poly-ROC" align=center />
+</center>
+
+* RandomForest
+<center>
+    <img src="./LogMel/ran_ROC.png" width = "60%" alt="ran-ROC" align=center />
+</center>
+
+### 样本分布
+
+* SVM-rbf
+<center>
+    <img src="./LogMel/rbf_DataDistri.png" width = "50%" alt="rbf-ROC" align=center /><img src="./LogMel/rbf_DataDistri_lim.png" width = "50%" alt="rbf-ROC" align=center />
+</center>
+
+* SVM-poly
+<center>
+    <img src="./LogMel/poly_DataDistri.png" width = "50%" alt="rbf-ROC" align=center /><img src="./LogMel/poly_DataDistri_lim.png" width = "50%" alt="rbf-ROC" align=center />
+</center>
+
+* RandomForest
+<center>
+    <img src="./LogMel/ran_DataDistri.png" width = "60%" alt="rbf-ROC" align=center />
+</center>
+
+
+把数据随机划分 $75.5\%$ 为训练集，余下为测试集，以训练集训练分类器后，作出测试集的样本分布。每个分类器重复三次作出三张分布图。
+
+* SVM-rbf
+<center>
+    <img src="./LogMel/rbf_DataDistri_test1.png" width = "30%" alt="rbf-ROC" align=center /><img src="./LogMel/rbf_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./LogMel/rbf_DataDistri_test66.png" width = "30%" alt="rbf-ROC" align=center />
+</center>
+
+* SVM-poly
+<center>
+    <img src="./LogMel/poly_DataDistri_test1.png" width = "30%" alt="rbf-ROC" align=center /><img src="./LogMel/poly_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./LogMel/poly_DataDistri_test66.png" width = "30%" alt="rbf-ROC" align=center />
+</center>
+
+* RandomForest
+<center>
+    <img src="./LogMel/ran_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./LogMel/ran_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./LogMel/ran_DataDistri_test66.png" width = "30%" alt="rbf-ROC" align=center />
+</center>
+
+从综合正确率、ROC 曲线、平均AUC值，样本分布来看，用同样的分类方法，LogMel 特征的效果比 Spectrum 特征稍差。
+
+## MFCC 特征
+
+在同上的参数搜索范围内搜索出的最优参数如下
+
+* SVM-rbf
+
+    `C`: 2
+
+    `class_weight`: {1: 1, 0: 1}
+
+* SVM-poly
+
+    `C`: 1
+
+    `degree`: 1
+
+    `class_weight`: {1: 1, 0: 1}
+
+* RandomForest
+
+    `n_estimators`: 250
+
+    `max_depth`: 5
+
+    `class_weight`: {1: 1, 0: 1.5}
+
+
+调整两类权重进行测试
+<center>
+
+### SVM
+
+|核函数|class_weight|up|low|all
+|:---:|:---:|:---:|:---:|:---:|
+|rbf|1:1|88.82%|60.18%|77.24%|
+|rbf|1:1.5|86.80%|62.35%|76.88%|
+|rbf|1:2|85.82%|63.02%|76.57%|
+|rbf|1:4|85.43%|62.77%|76.22%|
+|rbf|1:8|85.43%|62.77%|76.22%|
+|poly|1:1|86.66%|64.45%|77.70%|
+|poly|1:1.5|78.23%|73.39%|76.29%|
+|poly|1:1.7|75.15%|74.48%|75.00%|
+|poly|1:2|71.61%|77.57%|74.02%|
+
+### RandomForestClassifier
+n_estimators=200 max_depth=10 
+|class_weight|up|low|all|
+|:---:|:---:|:---:|:---:|:---:|
+|1:1|99.35%|16.98%|65.93%|
+|1:1.5|82.58%|65.83%|75.55%|
+|1:1.6|72.58%|73.51%|72.72%|
+|1:1.7|62.88%|81.41%|70.21%|
+|1:2|34.39%|93.40%|58.16%|
+
+</center>
+
+为各个分类器选定最优参数如下
+
+* SVM-rbf
+
+    `C`: 2
+
+    `class_weight`: {1: 1, 0: 2}
+
+* SVM-poly
+
+    `C`: 1
+
+    `degree`: 1
+
+    `class_weight`: {1: 1, 0: 1.7}
+
+* RandomForest
+
+    `n_estimators`: 250
+
+    `max_depth`: 5
+
+    `class_weight`: {1: 1, 0: 1.6}
+
+### ROC 曲线分析
+
+
+* SVM-rbf
+<center>
+    <img src="./MFCC/rbf_ROC.png" width = "60%" alt="rbf-ROC" align=center />
+</center>
+
+* SVM-poly
+<center>
+    <img src="./MFCC/poly_ROC.png" width = "60%" alt="poly-ROC" align=center />
+</center>
+
+* RandomForest
+<center>
+    <img src="./MFCC/ran_ROC.png" width = "60%" alt="ran-ROC" align=center />
+</center>
+
+### 样本分布
+
+* SVM-rbf
+<center>
+    <img src="./MFCC/rbf_DataDistri.png" width = "50%" alt="rbf-ROC" align=center /><img src="./MFCC/rbf_DataDistri_lim.png" width = "50%" alt="rbf-ROC" align=center />
+</center>
+
+* SVM-poly
+<center>
+    <img src="./MFCC/poly_DataDistri.png" width = "50%" alt="rbf-ROC" align=center /><img src="./MFCC/poly_DataDistri_lim.png" width = "50%" alt="rbf-ROC" align=center />
+</center>
+
+* RandomForest
+<center>
+    <img src="./MFCC/ran_DataDistri.png" width = "60%" alt="rbf-ROC" align=center />
+</center>
+
+
+把数据随机划分 $75.5\%$ 为训练集，余下为测试集，以训练集训练分类器后，作出测试集的样本分布。每个分类器重复三次作出三张分布图。
+
+* SVM-rbf
+<center>
+    <img src="./MFCC/rbf_DataDistri_test1.png" width = "30%" alt="rbf-ROC" align=center /><img src="./MFCC/rbf_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./MFCC/rbf_DataDistri_test66.png" width = "30%" alt="rbf-ROC" align=center />
+</center>
+
+* SVM-poly
+<center>
+    <img src="./MFCC/poly_DataDistri_test1.png" width = "30%" alt="rbf-ROC" align=center /><img src="./MFCC/poly_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./MFCC/poly_DataDistri_test66.png" width = "30%" alt="rbf-ROC" align=center />
+</center>
+
+* RandomForest
+<center>
+    <img src="./MFCC/ran_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./MFCC/ran_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./MFCC/ran_DataDistri_test66.png" width = "30%" alt="rbf-ROC" align=center />
+</center>
