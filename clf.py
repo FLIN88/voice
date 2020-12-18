@@ -161,8 +161,8 @@ if __name__ == "__main__":
     flab.close()
     '''
     
-    fvec = open('./MFCCvec.txt','rb')
-    flab = open('./MFCClab.txt','rb')
+    fvec = open('./specvec.txt','rb')
+    flab = open('./speclab.txt','rb')
     vec = pickle.load(fvec)
     lab = pickle.load(flab).ravel()
     fvec.close()
@@ -170,12 +170,13 @@ if __name__ == "__main__":
     from sklearn.preprocessing import StandardScaler
     sl = StandardScaler()
     vec = sl.fit_transform(vec)
+    print(vec.shape)
     '''
     X_train = vec 
     y_train = lab 
     X_test = 0
     y_test = 0
-    '''
+    
     # 画分布图
     from sklearn.model_selection import train_test_split
     X_train, X_test, y_train, y_test = train_test_split(vec, lab, random_state = 66)
@@ -185,7 +186,7 @@ if __name__ == "__main__":
     neg = P_test[y_test==0]
     pos = P_test[y_test==1]
     draw_distribution(neg, pos, './ran_DataDistri_test66.png')
-    
+    '''
     '''
     # 搜索超参数
     from sklearn.model_selection import GridSearchCV
