@@ -45,9 +45,9 @@ def draw_distribution(X1, X2, fout=None):
 
 def RandomForest(X_train, y_train, X_test, y_test):
     from sklearn.ensemble import RandomForestClassifier
-    dep = 5
-    n = 250
-    clf = RandomForestClassifier(n_estimators = n, random_state = 88, max_depth = dep, class_weight = {1: 1, 0: 1.6})
+    dep = 10
+    n = 200
+    clf = RandomForestClassifier(n_estimators = n, random_state = 88, max_depth = dep, class_weight = {1: 1, 0: 3})
     clf.fit(X_train,y_train)
     #return clf.score(X_test, y_test)
     return clf.predict_proba(X_test)[:, 1]
@@ -57,7 +57,7 @@ def RandomForest(X_train, y_train, X_test, y_test):
 
 def rbfsvm(X_train, y_train, X_test, y_test):
     from sklearn.svm import SVC
-    Cval = 2
+    Cval = 4
     clf = SVC(C = Cval, kernel = 'rbf', gamma= 'scale', class_weight = {1: 1, 0: 2})
     P_test = clf.fit(X_train, y_train).decision_function(X_test)
     return P_test
@@ -92,15 +92,15 @@ def rbfsvm(X_train, y_train, X_test, y_test):
 
 def polysvm(X_train, y_train, X_test, y_test):
     from sklearn.svm import SVC
-    Cval = 2
-    Deg = 2
-    clf = SVC(C = Cval, kernel = 'poly', degree = Deg, gamma = 'scale', class_weight = {1: 1, 0: 2}) 
+    Cval = 1
+    Deg = 1
+    clf = SVC(C = Cval, kernel = 'poly', degree = Deg, gamma = 'scale', class_weight = {1: 1, 0: 1.5}) 
     clf.fit(X_train,y_train)
     #return clf.score(X_test,y_test)
-    #P_test = clf.fit(X_train,y_train).decision_function(X_test)
-    #return P_test
-    print("C =", Cval, "degree:", Deg)
-    print(clf.n_support_)
+    P_test = clf.fit(X_train,y_train).decision_function(X_test)
+    return P_test
+    #print("C =", Cval, "degree:", Deg)
+    #print(clf.n_support_)
     #print(clf.score(X_train,y_train))
     #print(clf.score(X_test, y_test))
     #print()
@@ -161,8 +161,8 @@ if __name__ == "__main__":
     flab.close()
     '''
     
-    fvec = open('./specvec.txt','rb')
-    flab = open('./speclab.txt','rb')
+    fvec = open('./MFCCvec.txt','rb')
+    flab = open('./MFCClab.txt','rb')
     vec = pickle.load(fvec)
     lab = pickle.load(flab).ravel()
     fvec.close()
@@ -171,22 +171,22 @@ if __name__ == "__main__":
     sl = StandardScaler()
     vec = sl.fit_transform(vec)
     print(vec.shape)
-    
+    '''
     X_train = vec 
     y_train = lab 
     X_test = 0
     y_test = 0
     
     # 画分布图
-    #from sklearn.model_selection import train_test_split
-    #X_train, X_test, y_train, y_test = train_test_split(vec, lab, random_state = 66)
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(vec, lab, random_state = 66)
 
     P_test = polysvm(X_train, y_train, X_test, y_test)
 
-    #neg = P_test[y_test==0]
-    #pos = P_test[y_test==1]
-    #draw_distribution(neg, pos, './ran_DataDistri_test66.png')
-    
+    neg = P_test[y_test==0]
+    pos = P_test[y_test==1]
+    draw_distribution(neg, pos, './ran_DataDistri_test66.png')
+    '''
     '''
     # 搜索超参数
     from sklearn.model_selection import GridSearchCV
@@ -204,7 +204,7 @@ if __name__ == "__main__":
     data.to_csv('./cv_results_svm.csv')
     print(clf.cv_results_['params'][clf.best_index_])
     '''
-    '''
+    
     from sklearn.metrics import roc_curve, auc
     # ROC Curve
     lw = 1
@@ -218,7 +218,8 @@ if __name__ == "__main__":
     plt.plot([0, 1], [1, 0], color='navy', lw=lw, linestyle='--')
     cs = ['red','orange','yellow','green','cyan',
       'blue','purple','pink','magenta','brown']
-    
+    mean_fpr = np.linspace(0, 1, 500)
+    '''
     # N折交叉验证
     from sklearn.model_selection import KFold
     kf = KFold(n_splits = 10, shuffle = True, random_state = 66)
@@ -226,7 +227,13 @@ if __name__ == "__main__":
     upper = []
     total = []
     cas=0
-
+    from numpy import interp
+    rbf_tprs = []
+    rbf_fprs = []
+    poly_tprs = []
+    poly_fprs = []
+    ran_tprs = []
+    ran_fprs = []
     for train_index, test_index in kf.split(vec):
         X_train = vec[train_index]
         y_train = lab[train_index]
@@ -242,19 +249,81 @@ if __name__ == "__main__":
         lower.append(RandomForest(X_train, y_train, X_l, y_l))
         total.append(RandomForest(X_train, y_train, X_test, y_test))
         
+
+        P_test = rbfsvm(X_train, y_train, X_test, y_test)
+        fpr, tpr, threshold = roc_curve(y_test, P_test)
+        rbf_tprs.append(interp(mean_fpr, fpr, tpr))
+        rbf_tprs[-1][0] = 0.0
+
+        P_test = polysvm(X_train, y_train, X_test, y_test)
+        fpr, tpr, threshold = roc_curve(y_test, P_test)
+        poly_tprs.append(interp(mean_fpr, fpr, tpr))
+        poly_tprs[-1][0] = 0.0
+        
         P_test = RandomForest(X_train, y_train, X_test, y_test)
         fpr, tpr, threshold = roc_curve(y_test, P_test)
-        roc_auc = auc(fpr,tpr)
-        plt.plot(fpr, tpr, color = cs[cas],
-            lw=lw, label='AUC = %0.2f' % roc_auc) ###假正率为横坐标，真正率为纵坐标做曲线
+        ran_tprs.append(interp(mean_fpr, fpr, tpr))
+        ran_tprs[-1][0] = 0.0
         
         cas+=1
     
     print("Up:", np.mean(upper))
     print("Low:", np.mean(lower))
     print("all:", np.mean(total))
+    '''
+    '''
+    mean_tpr = np.mean(rbf_tprs, axis = 0)
+    roc_auc = auc(mean_fpr,mean_tpr)
+    plt.plot(mean_fpr, mean_tpr, color = 'r',
+        lw=lw, label='SVM-rbf AUC = %0.2f' % roc_auc) ###假正率为横坐标，真正率为纵坐标做曲线
+    rbf_eer = 0
+    for i in range(mean_tpr.shape[0]):
+        if mean_tpr[i] < 1 - mean_fpr[i]:
+            rbf_eer = mean_fpr[i]
+    
+    
+    mean_tpr = np.mean(poly_tprs, axis = 0)
+    roc_auc = auc(mean_fpr,mean_tpr)
+    plt.plot(mean_fpr, mean_tpr, color = 'b',
+        lw=lw, label='SVM-poly AUC = %0.2f' % roc_auc) ###假正率为横坐标，真正率为纵坐标做曲线
+    
+    poly_eer = 0
+    for i in range(mean_tpr.shape[0]):
+        if mean_tpr[i] < 1 - mean_fpr[i]:
+            poly_eer = mean_fpr[i]
+    
+    mean_tpr = np.mean(ran_tprs, axis = 0)
+    roc_auc = auc(mean_fpr,mean_tpr)
+    plt.plot(mean_fpr, mean_tpr, color = 'g',
+        lw=lw, label='RandomForest AUC = %0.2f' % roc_auc) ###假正率为横坐标，真正率为纵坐标做曲线
+    
+    ran_eer = 0
+    for i in range(mean_tpr.shape[0]):
+        if mean_tpr[i] < 1 - mean_fpr[i]:
+            ran_eer = mean_fpr[i]
+    '''
+    fspec = open('./Spec_eer.txt','rb')
+    mean_tpr = pickle.load(fspec)
+    fspec.close()
+    roc_auc = auc(mean_fpr, mean_tpr)
+    plt.plot(mean_fpr, mean_tpr, color = 'r',
+        lw=lw, label='Spectrum AUC = %0.2f' % roc_auc) ###假正率为横坐标，真正率为纵坐标做曲线
+    
+    fspec = open('./LogMel_eer.txt','rb')
+    mean_tpr = pickle.load(fspec)
+    fspec.close()
+    roc_auc = auc(mean_fpr, mean_tpr)
+    plt.plot(mean_fpr, mean_tpr, color = 'b',
+        lw=lw, label='LogMel AUC = %0.2f' % roc_auc) ###假正率为横坐标，真正率为纵坐标做曲线
+    
+    fspec = open('./MFCC_eer.txt','rb')
+    mean_tpr = pickle.load(fspec)
+    fspec.close()
+    roc_auc = auc(mean_fpr, mean_tpr)
+    plt.plot(mean_fpr, mean_tpr, color = 'g',
+        lw=lw, label='MFCC AUC = %0.2f' % roc_auc) ###假正率为横坐标，真正率为纵坐标做曲线
     
     plt.legend(loc="lower right")
-    plt.savefig('./ran_ROC.png', dpi = 300)
+    plt.savefig('./poly_ROC.png', dpi = 300)
     #plt.show()
-    '''
+    
