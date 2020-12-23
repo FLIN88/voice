@@ -460,7 +460,7 @@ SVM 的 `gamma` 参数在手动尝试测试时发现 设置为 'scale' （即根
 
 </center>
 
-以下比较三种特征的最优参赛 poly 核 SVM 的 ROC 曲线
+以下比较三种特征的最优参数 poly 核 SVM 的 ROC 曲线
 <center>
 
 ### ROC
