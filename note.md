@@ -1,17 +1,16 @@
 
 # 特征提取
-所有鼾声的原始音频文件均为采样频率为 $8000$ Hz单声道 wav 格式的时域波形文件。采用时频分析方法提取音频特征，同时使用短时傅里叶变换，MFCC 两种方法提取出语谱图（Spectrum）、LogMel、MFCC 三种特征，其中 LogMel 特征为 MFCC 特征提取过程中的梅尔滤波器的能量，三种方法的产品都是用 colormap 的方式。把特征矩阵绘制为彩图。
+所有鼾声的原始音频文件均为采样频率为 $8000$ Hz单声道 wav 格式的时域波形文件。采用时频分析方法提取音频特征，同时使用短时傅里叶变换，MFCC 两种方法提取出语谱图（Spectrogram）、LogMel、MFCC 三种特征，其中 LogMel 特征为 MFCC 特征提取过程中的梅尔滤波器的能量，三种方法的产品都是用 colormap 的方式。把特征矩阵绘制为彩图。
 
 ## 分帧
 
 实施三种特征提取方法之前都需要对时域波形信号进行分帧，帧长为 $512$ 采样点、 帧移为 $32$ 采样点，每帧都加以汉明窗，然后每帧单独实施傅里叶变换和计算 MFCC ，将得到的结果再以时间顺序拼接以得到时域信息。
 
-## Spectrum
-对每帧时域波形信号进行点数为 $1024$ 的傅里叶变换。得到每帧的振幅
-
+## Spectrogram
+对每帧时域波形信号进行点数为 $1024$ 的傅里叶变换。得到每帧各个频率的振幅。把每帧的一维振幅信息按时间顺序排起来，得到横轴为时间，纵轴的频率的时频信息矩阵，即为一个鼾声的 Spectrogram 特征。
 ## LogMel/MFCC
 
-先把傅里叶变换得到的振幅转化为能量值，从傅里叶变换的到的振幅计算为能量的公式如下：
+先把每帧傅里叶变换得到的各个频率振幅值按以下公式转化为能量值。
 <center>
 
 $E = |A|^2$
@@ -29,7 +28,7 @@ $LogMel_i = log_2(Mel_i)$
 
 每个 $LogMel_i$ 组成一帧 LogMel ，把每帧能量按时间顺序拼接就得到整个声音的 LogMel。
 
-把每帧的 LogMel 做 $64$ 阶 DCT 变换，即可得到 MFCC。
+把每帧的 LogMel 做 $64$ 阶 DCT 变换，即可得到 MFCC 。
 
 
 # 特征预处理
@@ -41,38 +40,31 @@ $Grey = 0.299\times R + 0.587\times B + 0.114\times G$
 
 </center>
 
-所有样本进行主成分分析法降维，降维参数为保留样本矩阵的 $85\%$ 的方差。 LogMel、Spectrum、MFCC 分别降至460、198、574维。其中 Spectrum 特征的降维效果最好，说明特征信息集中在更少的维度上。
+所有样本进行主成分分析法降维，降维参数为保留样本矩阵的 $85\%$ 的方差。 LogMel、Spectrogram、MFCC 分别降至460、198、574维。其中 Spectrogram 特征的降维效果最好，说明特征信息集中在更少的维度上。
 
 
 以下对每一个特征-分类器组合都进行了分析，先对每种特征的三种分类器进行对比分析，再对比每种特征的最好结果。为了描述简洁，以下对本问题中研究的上阻塞、下阻塞分别成为正类、负类。
 
 # 分类
 
-## Spectrum 特征
+## Spectrogram 特征
 
 确定了特征和分类器后，考虑用 sklearn 库的 Gridsearchcv 函数来搜索最优参数，其做法是对给出范围内的各种参数组合进行暴力枚举后测试，所用的测试方法为5折交叉验证，评价标准为测试集上分类正确率。
 
 各个分类器的搜索范围如下
 
 * SVM-rbf
-
-    `C`: 1,2,3,4,5
-
-    `class_weight`: {1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}
+  * **C**: 1,2,3,4,5
+  * **class_weight**: {1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}
 
 * SVM-poly
-
-    `C`: 1,2,3,4,5
-
-    `degree`: 1,2,3,4
-
-    `class_weight`: {1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}
+  * **C**: 1,2,3,4,5
+  * **degree**: 1,2,3,4
+  * **class_weight**: {1: 1, 0: 2}, {1: 1, 0: 1}, {1: 1, 0: 1.5}
 
 * RandomForest
-
-    `n_estimators`: 50,100,150,200,250,300
-
-    `max_depth`: 5,10,15,20,25,30
+  * **n_estimators**: 50,100,150,200,250,300
+  * **max_depth**: 5,10,15,20,25,30
 
 
 SVM 的 `gamma` 参数在手动尝试测试时发现 设置为 'scale' （即根据样本 X 的方差和样本个数进行计算得出的值）都优于所有手动尝试的结果。
@@ -81,26 +73,18 @@ SVM 的 `gamma` 参数在手动尝试测试时发现 设置为 'scale' （即根
 搜索的出的最优参数如下
 
 * SVM-rbf
-
-    `C`: 4
-
-    `class_weight`: {1: 1, 0: 1}
+  * *C`: 4
+  * **class_weight**: {1: 1, 0: 1}
 
 * SVM-poly
-
-    `C`: 2
-
-    `degree`: 2
-
-    `class_weight`: {1: 1, 0: 1}
+  * **C**: 2
+  * **degree**: 2
+  * **class_weight**: {1: 1, 0: 1}
 
 * RandomForest
-
-    `n_estimators`: 200
-
-    `max_depth`: 10
-
-    `class_weight`: {1: 1, 0: 1}
+  * **n_estimators**: 200
+  * **max_depth**: 10
+  * **class_weight**: {1: 1, 0: 1}
 
 由于两类样本的不均衡，对于最优参数还手动调整两类权重，进行 $10$ 折交叉验证，用训练集训练以上最优参数的分类器，记录测试集上的正类分类正确率、负类分类正确率和综合分类正确率，结果如下表,其中 class_weight 为 正类 : 负类 。
 <center>
@@ -139,47 +123,39 @@ SVM 的 `gamma` 参数在手动尝试测试时发现 设置为 'scale' （即根
 现为各个分类器选定最优参数如下
 
 * SVM-rbf
-
-    `C`: 4
-
-    `class_weight`: {1: 1, 0: 2}
+  * **C**: 4
+  * **class_weight**: {1: 1, 0: 2}
 
 * SVM-poly
-
-    `C`: 2
-
-    `degree`: 2
-
-    `class_weight`: {1: 1, 0: 2}
+  * **C**: 2
+  * **degree**: 2
+  * **class_weight**: {1: 1, 0: 2}
 
 * RandomForest
-
-    `n_estimators`: 200
-
-    `max_depth`: 10
-
-    `class_weight`: {1: 1, 0: 3}
+  * **n_estimators**: 200
+  * **max_depth**: 10
+  * **class_weight**: {1: 1, 0: 3}
 
 ### ROC 曲线分析
-用以上测试出的最优权重最优参数对三种分类器进行10折交叉验证，其中作出各自的 ROC 曲线。
+用以上测试出的最优权重最优参数对三种分类器进行10折交叉验证，其中作出各自的平均 ROC 曲线。
 <center>
 
-#### **SVM-rbf**
-<img src="./Spec/rbf_ROC.png" width = "60%" alt="rbf-ROC" align=center />
-
-
-#### **SVM-poly**
-
-<img src="./Spec/poly_ROC.png" width = "60%" alt="poly-ROC" align=center />
-
-
-#### **RandomForest**
-
-<img src="./Spec/ran_ROC.png" width = "60%" alt="ran-ROC" align=center />
+#### **ROC curve**
+<img src="./Spec/Spec_ROC.png" width = "60%" alt="rbf-ROC" align=center />
 
 </center>
 
-无论是从 ROC 曲线形状还是平均 AUC 值来看，都是 poly 核 SVM 的表现更加出色，与其综合正确率的表现相匹配。
+三种分类器的 EER 如下表，可见等错误时 poly 核 SVM 有最低的相等的错误拒绝率和错误接受率，且低于 $20\%$
+
+<center>
+
+#### **Equal Error Rate**
+|SVM-rbf|SVM-poly|RandomForest|
+|:-:|:-:|:-:|
+|21.2%|**19.6%**|24.2%|
+</center>
+
+无论是从 ROC 曲线形状还是平均 AUC 值和 EER 来看，都是 poly 核 SVM 的表现更加出色，与其综合正确率的表现相匹配。
 
 ### 样本分布
 
@@ -232,26 +208,18 @@ SVM 的 `gamma` 参数在手动尝试测试时发现 设置为 'scale' （即根
 在同上的参数搜索范围内搜索出的最优参数如下
 
 * SVM-rbf
-
-    `C`: 4
-
-    `class_weight`: {1: 1, 0: 1}
+  * **C**: 4
+  * **class_weight**: {1: 1, 0: 1}
 
 * SVM-poly
-
-    `C`: 2
-
-    `degree`: 2
-
-    `class_weight`: {1: 1, 0: 1}
+  * **C**: 2
+  * **degree**: 2
+  * **class_weight**: {1: 1, 0: 1}
 
 * RandomForest
-
-    `n_estimators`: 100
-
-    `max_depth`: 10
-
-    `class_weight`: {1: 1, 0: 1.5}
+  * **n_estimators**: 100
+  * **max_depth**: 10
+  * **class_weight**: {1: 1, 0: 1.5}
 
 
 调整两类权重进行测试
@@ -289,46 +257,34 @@ SVM 的 `gamma` 参数在手动尝试测试时发现 设置为 'scale' （即根
 为各个分类器选定最优参数如下
 
 * SVM-rbf
-
-    `C`: 4
-
-    `class_weight`: {1: 1, 0: 2}
+  * **C**: 4
+  * **class_weight**: {1: 1, 0: 2}
 
 * SVM-poly
-
-    `C`: 2
-
-    `degree`: 2
-
-    `class_weight`: {1: 1, 0: 1.5}
+  * **C**: 2
+  * **degree**: 2
+  * **class_weight**: {1: 1, 0: 1.5}
 
 * RandomForest
-
-    `n_estimators`: 100
-
-    `max_depth`: 10
-
-    `class_weight`: {1: 1, 0: 2.5}
+  * **n_estimators**: 100
+  * **max_depth**: 10
+  * **class_weight**: {1: 1, 0: 2.5}
 
 ### ROC 曲线分析
 
 
 <center>
 
-#### **SVM-rbf**
+#### **ROC curve**
 
-<img src="./LogMel/rbf_ROC.png" width = "60%" alt="rbf-ROC" align=center />
-
-
-
-#### **SVM-poly**
-
-<img src="./LogMel/poly_ROC.png" width = "60%" alt="poly-ROC" align=center />
+<img src="./LogMel/LogMel_ROC.png" width = "60%" alt="rbf-ROC" align=center />
 
 
-#### **RandomForest**
 
-<img src="./LogMel/ran_ROC.png" width = "60%" alt="ran-ROC" align=center />
+#### **Equal Error Rate**
+|SVM-rbf|SVM-poly|RandomForest|
+|:-:|:-:|:-:|
+|22.4%|**21.4%**|26.5%|
 
 </center>
 
@@ -367,33 +323,25 @@ SVM 的 `gamma` 参数在手动尝试测试时发现 设置为 'scale' （即根
     <img src="./LogMel/ran_DataDistri_test1.png" width = "30%" alt="rbf-ROC" align=center /><img src="./LogMel/ran_DataDistri_test6.png" width = "30%" alt="rbf-ROC" align=center /><img src="./LogMel/ran_DataDistri_test66.png" width = "30%" alt="rbf-ROC" align=center />
 </center>
 
-从综合正确率、ROC 曲线、平均 AUC 值，样本分布来看，用同样的分类方法，LogMel 特征的效果比 Spectrum 特征稍差。
+从综合正确率、ROC 曲线、平均 AUC 值，样本分布来看，用同样的分类方法，LogMel 特征的效果比 Spectrogram 特征稍差。
 
 ## MFCC 特征
 
 在同上的参数搜索范围内搜索出的最优参数如下
 
 * SVM-rbf
-
-    `C`: 2
-
-    `class_weight`: {1: 1, 0: 1}
+  * **C**: 2
+  * **class_weight**: {1: 1, 0: 1}
 
 * SVM-poly
-
-    `C`: 1
-
-    `degree`: 1
-
-    `class_weight`: {1: 1, 0: 1}
+  * **C**: 1
+  * **degree**: 1
+  * **class_weight**: {1: 1, 0: 1}
 
 * RandomForest
-
-    `n_estimators`: 250
-
-    `max_depth`: 5
-
-    `class_weight`: {1: 1, 0: 1.5}
+  * **n_estimators**: 250
+  * **max_depth**: 5
+  * **class_weight**: {1: 1, 0: 1.5}
 
 
 调整两类权重进行测试
@@ -427,42 +375,31 @@ SVM 的 `gamma` 参数在手动尝试测试时发现 设置为 'scale' （即根
 为各个分类器选定最优参数如下
 
 * SVM-rbf
-
-    `C`: 2
-
-    `class_weight`: {1: 1, 0: 2}
+  * **C**: 2
+  * **class_weight**: {1: 1, 0: 2}
 
 * SVM-poly
-
-    `C`: 1
-
-    `degree`: 1
-
-    `class_weight`: {1: 1, 0: 1.7}
+  * **C**: 1
+  * **degree**: 1
+  * **class_weight**: {1: 1, 0: 1.7}
 
 * RandomForest
-
-    `n_estimators`: 250
-
-    `max_depth`: 5
-
-    `class_weight`: {1: 1, 0: 1.6}
+  * **n_estimators**: 250
+  * **max_depth**: 5
+  * **class_weight**: {1: 1, 0: 1.6}
 
 ### ROC 曲线分析
 
 <center>
 
-#### SVM-rbf
+#### **ROC curve**
 
-<img src="./MFCC/rbf_ROC.png" width = "60%" alt="rbf-ROC" align=center />
+<img src="./MFCC/MFCC_ROC.png" width = "60%" alt="rbf-ROC" align=center />
 
-#### **SVM-poly**
-
-<img src="./MFCC/poly_ROC.png" width = "60%" alt="poly-ROC" align=center />
-
-#### **RandomForest**
-
-<img src="./MFCC/ran_ROC.png" width = "60%" alt="ran-ROC" align=center />
+#### **Equal Error Rate**
+|SVM-rbf|SVM-poly|RandomForest|
+|:-:|:-:|:-:|
+|25.3%|**24.2%**|26.1%|
 
 </center>
 
@@ -507,24 +444,33 @@ SVM 的 `gamma` 参数在手动尝试测试时发现 设置为 'scale' （即根
 
 在以上的测试中，三种特征中分类最好的都是 poly 核 SVM，以下对比各个特征使用 poly 核 SVM 的表现。
 
-以下图片均以从左往右分别为 Spectrum 、LogMel 、 MFCC 特征的顺序排列。
+<center>
+
+### 10折交叉验证平均正确率
+|Spectrogram|LogMel|MFCC|
+|:-:|:-:|:-:|
+|**80.65%**|77.98%|76.29%|
+
+</center>
+
+以下比较三种特征的最优参赛 poly 核 SVM 的 ROC 曲线
 <center>
 
 ### ROC
 
 
-<img src="./Spec/poly_ROC.png" width = "30%" alt="rbf-ROC" align=center /><img src="./LogMel/poly_ROC.png" width = "30%" alt="rbf-ROC" align=center /><img src="./MFCC/poly_ROC.png" width = "30%" alt="rbf-ROC" align=center />
+<img src="./poly_ROC.png" width = "30%" alt="rbf-ROC" align=center />
+
+#### **Equal Error Rate**
+|Spectrogram|LogMel|MFCC|
+|:-:|:-:|:-:|
+|**19.6%**|21.4%|24.2%|
 
 </center>
 
-可以看到 Spectrum 特征的 ROC 曲线最接近直角折线，同时看到下表的10折交叉验证的平均 AUC 也是 Spectrum 的 0.886 最高。
+可以看到 Spectrogram 特征的10折交叉验证的平均 ROC 曲线最好、 AUC 最高， EER 也是 Spectrogram 的 $19.6\%$ 最高。
 
 <center>
-
-### AUC
-|Spectrum|LogMel|MFCC|
-|:-:|:-:|:-:|
-|**0.886**|0.860|0.821|
 
 ### 随机测试集样本分布
 
@@ -532,25 +478,10 @@ SVM 的 `gamma` 参数在手动尝试测试时发现 设置为 'scale' （即根
 
 </center>
 
-从随机划分 $25\%$ 的测试集上的样本分别来看， Spectrum 中的两类更加分离，并且在各自的中心聚集，从重合部分占比更小，相比之下 LogMel 特征中的负类更加分散，从而重合部分占比更大，这个负类分散导致重合部分占比上升在 MFCC 特征中的分布里表现得更加明显。
+从随机划分 $25\%$ 的测试集上的样本分别来看， Spectrogram 中的两类更加分离，并且在各自的中心聚集，从重合部分占比更小，相比之下 LogMel 特征中的负类更加分散，从而重合部分占比更大，这个负类分散导致重合部分占比上升在 MFCC 特征中的分布里表现得更加明显。
 
 # 结论
 
-在上面的测试， Spectrum 特征最优分类表现在三种特征的最优分类表现中是最好的，同时 poly 核 SVM 在对三种特征进行分类中表现都优与 rbf 核 SVM 和 RandomForest 。
+在上面的测试， Spectrogram 特征最优分类表现在三种特征的最优分类表现中是最好的，同时 poly 核 SVM 在对三种特征进行分类中表现都优与 rbf 核 SVM 和 RandomForest 。
 
-Spectrum 特征用 poly 核 SVM 进行分类的单类和综合分类平均正确率都高于 $80\%$ ，随机划分测试集上的平均 AUC 值有 $0.886$ 。说明这个特征和分类器组合是能够有效分类的。
-
-## Spce EER
-rbf_err: 0.2124248496993988
-poly_err: 0.19639278557114226
-ran_err: 0.24248496993987975
-
-## LogMel EER
-rbf_err: 0.22444889779559116
-poly_err: 0.21442885771543085
-ran_err: 0.26452905811623245
-
-## MFCC EER
-rbf_err: 0.25250501002004005
-poly_err: 0.24248496993987975
-ran_err: 0.2605210420841683
+Spectrogram 特征用 poly 核 SVM 进行分类的单类和综合分类平均正确率都高于 $80\%$ ，随机划分测试集上的平均 AUC 值有 $0.89$ 。说明这个特征和分类器组合是能够有效分类的。
