@@ -2,6 +2,13 @@
 # 特征提取
 所有鼾声的原始音频文件均为采样频率为 $8000$ Hz单声道 wav 格式的时域波形文件。采用时频分析方法提取音频特征，同时使用短时傅里叶变换，MFCC 两种方法提取出语谱图（Spectrogram）、LogMel、MFCC 三种特征，其中 LogMel 特征为 MFCC 特征提取过程中的梅尔滤波器的能量，三种方法的产品都是用 colormap 的方式。把特征矩阵绘制为彩图。
 
+<center>
+
+#### 来自同一段鼾声的三个特征图，从左到右依次为 Spectrogram 、LogMel 、MFCC
+
+<img src="./spec.png" width = "30%" alt="rbf-ROC" align=center /> <img src="./logMel.png" width = "30%" alt="rbf-ROC" align=center /> <img src="./MFCC.png" width = "30%" alt="rbf-ROC" align=center />
+</center>
+
 ## 分帧
 
 实施三种特征提取方法之前都需要对时域波形信号进行分帧，帧长为 $512$ 采样点、 帧移为 $32$ 采样点，每帧都加以汉明窗，然后每帧单独实施傅里叶变换和计算 MFCC ，将得到的结果再以时间顺序拼接以得到时域信息。
