@@ -1,9 +1,4 @@
 /*
 !.gitignore
 !*.py
-!*.md
 !*.png
-!*.csv
-!/MFCC/
-!/Spec/
-!/LogMel/
