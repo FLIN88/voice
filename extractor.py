@@ -88,8 +88,11 @@ if __name__ == "__main__":
     testlab = []
     U = []
     L = []
+    mm = 100000
+    mx = 0
+    up = 0
+    low = 0
     for r, d, f in os.walk(signalpath):
-        print(r)
         for name in d:
             dpath = os.path.join(specpath, r[len(signalpath) + 1: ], name)
             if not os.path.exists(dpath):
@@ -103,10 +106,13 @@ if __name__ == "__main__":
         
         for name in f:
             if name.endswith('.wav'):
-                
+
                 path, _ = os.path.splitext(name)
                 path = os.path.join(r[len(signalpath) + 1: ], path + '.pk')
                 lab = 1 if 'U' in r else 0
+                testpath.append(path)
+                testlab.append(lab)
+                '''
                 istrain = True
                 for p in testset:
                     if p in r:
@@ -125,10 +131,16 @@ if __name__ == "__main__":
                         U.append((path, lab))
                     else:
                         L.append((path, lab))
-                '''
+                
                 fpath = os.path.join(r, name)
+                l = len(readwave(fpath))
+                mx = max(mx, l)
+                mm = min(mm, l)
+                up += 1 if 'U' in r else 0
+                low += 0 if 'U' in r else 1
+                
                 wavedata = stack(readwave(fpath))
-
+                
                 spec, logmel, MFCC = extractfeature(wavedata)
                 
                 spath, _ = os.path.splitext(os.path.join(specpath, r[len(signalpath) + 1: ], name))
@@ -139,7 +151,7 @@ if __name__ == "__main__":
                 
                 spath, _ = os.path.splitext(os.path.join(MFCCpath, r[len(signalpath) + 1: ], name))
                 savefeature(MFCC, spath)
-                '''
+    
     aug = len(U) - len(L) # 1360 - 895 = 465
     L = L + sample(L, aug)
     path, lab = zip(*U)
@@ -150,5 +162,9 @@ if __name__ == "__main__":
     trainlab = trainlab + list(lab)
     pd.DataFrame({'path': trainpath, 'label': trainlab}).to_csv('train.csv')
     pd.DataFrame({'path': validpath, 'label': validlab}).to_csv('valid.csv')
-    pd.DataFrame({'path': testpath, 'label': testlab}).to_csv('test.csv')
-    
+    '''
+    pd.DataFrame({'path': testpath, 'label': testlab}).to_csv('all.csv')
+    '''
+    print(mm, mx)
+    print('low:', low, 'up:', up)
+    '''
